@@ -1,0 +1,16 @@
+wave,group,id,name,type,environment,owner,path,criticality,dependencies,status,file,line
+1,1,dns-core,Internal DNS,server,production,network-team,rehost,high,,move,examples/messy/inventory.csv,2
+1,2,billing,Billing,application,production,finance-team,replatform,high,ledger-db2 fax-gateway mainframe-batch,move,examples/messy/inventory.csv,9
+1,3,dev-sandbox,Developer sandbox,server,development,platform-team,,low,,move,examples/messy/inventory.csv,14
+2,4,test-runner,Test runner,server,development,platform-team,repurchase,low,test-runner,move,examples/messy/inventory.csv,15
+3,5,auth-svc,Sign-in service,application,production,identity-team,replatform,high,dns-core,move,examples/messy/inventory.csv,3
+3,6,orders-db,Orders database,database,production,data-team,replatform,high,dns-core,move,examples/messy/inventory.csv,4
+3,7,rates-cache,Rates cache,server,production,,rehost,medium,dns-core,move,examples/messy/inventory.csv,7
+4,8,ledger-db,Ledger database,database,production,finance-team,relocate,high,dns-core,move,examples/messy/inventory.csv,10
+5,9,orders-api,"Orders API, public",application,production,commerce-team,refactor,high,orders-db pricing-svc auth-svc,move,examples/messy/inventory.csv,5
+5,9,pricing-svc,Pricing service,application,production,commerce-team,rehost,medium,orders-api rates-cache,move,examples/messy/inventory.csv,6
+5,10,report-portal,Reports portal,application,production,data-team,rehoist,low,orders-db,move,examples/messy/inventory.csv,13
+6,11,web-shop,Web shop,application,production,web-team,rehost,high,orders-api auth-svc,move,examples/messy/inventory.csv,8
+,,fax-gateway,Fax gateway,server,production,ops-team,retire,low,,retire,examples/messy/inventory.csv,11
+,,mainframe-batch,Mainframe batch jobs,server,production,finance-team,retain,high,,retain,examples/messy/inventory.csv,12
+,,old-intranet,Old intranet,application,production,web-team,retire,low,fax-gateway,retire,examples/messy/inventory.csv,17

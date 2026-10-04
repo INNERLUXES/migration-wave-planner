@@ -1,0 +1,18 @@
+id,name,type,owner,environment,migration path,criticality,depends on,notes
+dns-core,Internal DNS,server,network-team,production,move as is,high,,two resolvers
+auth-svc,Sign-in service,application,identity-team,production,replatform,high,dns-core,
+orders-db,Orders database,database,data-team,production,replatform,high,dns-core,managed database target
+orders-api,"Orders API, public",application,commerce-team,production,refactor,high,orders-db;pricing-svc;auth-svc,
+pricing-svc,Pricing service,application,commerce-team,production,rehost,medium,orders-api;rates-cache,
+rates-cache,Rates cache,server,,production,Lift and Shift,medium,dns-core,
+web-shop,Web shop,application,web-team,production,rehost,high,orders-api;auth-svc,
+billing,Billing,application,finance-team,production,replatform,high,ledger-db2;fax-gateway;mainframe-batch,
+ledger-db,Ledger database,database,finance-team,production,relocate,high,dns-core,
+fax-gateway,Fax gateway,server,ops-team,production,retire,low,,
+mainframe-batch,Mainframe batch jobs,server,finance-team,production,retain,high,,stays on premises
+report-portal,Reports portal,application,data-team,production,rehoist,low,orders-db,
+dev-sandbox,Developer sandbox,server,platform-team,development,,low,,
+test-runner,Test runner,server,platform-team,development,repurchase,low,test-runner,
+auth-svc,Sign-in service (staging),application,identity-team,staging,rehost,medium,dns-core,
+old-intranet,Old intranet,application,web-team,production,retire,low,fax-gateway,
+monitoring,Monitoring,server,ops-team

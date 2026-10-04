@@ -1,0 +1,778 @@
+{
+  "tool": "migration-wave-planner",
+  "version": "1.0.0",
+  "input": {
+    "paths": [
+      "examples/messy/inventory.csv"
+    ],
+    "files": [
+      {
+        "file": "examples/messy/inventory.csv",
+        "kind": "csv",
+        "read": true,
+        "records": 17,
+        "workloads": 16
+      }
+    ],
+    "byKind": {
+      "csv": 1,
+      "json": 0
+    }
+  },
+  "config": {
+    "file": "examples/config.json",
+    "name": "Quillmoor estate",
+    "aliases": {
+      "lift and shift": "rehost",
+      "lift tinker and shift": "replatform",
+      "lift and reshape": "replatform",
+      "drop and shop": "repurchase",
+      "re architect": "refactor",
+      "rearchitect": "refactor",
+      "move as is": "rehost"
+    },
+    "maxWaveSize": 3,
+    "minSeverity": "info",
+    "failOn": "warning",
+    "rules": [
+      {
+        "id": "circular-dependency",
+        "key": "circularDependency",
+        "level": "warning",
+        "rule": "moving workloads whose dependencies lead back to themselves"
+      },
+      {
+        "id": "unknown-dependency",
+        "key": "unknownDependency",
+        "level": "error",
+        "rule": "an id in the dependencies of a workload that no record of the inventory has"
+      },
+      {
+        "id": "duplicate-id",
+        "key": "duplicateId",
+        "level": "error",
+        "rule": "a record whose id an earlier record already has"
+      },
+      {
+        "id": "missing-owner",
+        "key": "missingOwner",
+        "level": "warning",
+        "rule": "a workload with an empty owner, or an inventory with no owner column"
+      },
+      {
+        "id": "missing-path",
+        "key": "missingPath",
+        "level": "error",
+        "rule": "a workload with an empty migration path, or an inventory with no path column"
+      },
+      {
+        "id": "unknown-path",
+        "key": "unknownPath",
+        "level": "error",
+        "rule": "a migration path that is none of retire, retain, rehost, relocate, repurchase, replatform, refactor and the 7 aliases of the configuration"
+      },
+      {
+        "id": "retired-dependency",
+        "key": "retiredDependency",
+        "level": "error",
+        "rule": "a workload with the path retire that a workload with another path depends on"
+      },
+      {
+        "id": "retained-dependency",
+        "key": "retainedDependency",
+        "level": "warning",
+        "rule": "a workload with the path retain that a workload that moves depends on"
+      },
+      {
+        "id": "move-group-too-big",
+        "key": "moveGroupTooBig",
+        "level": "warning",
+        "rule": "a move group with more workloads than the largest wave size of 3"
+      },
+      {
+        "id": "invalid-record",
+        "key": null,
+        "level": "error",
+        "rule": "a record of the inventory with no id, the wrong number of fields or a value of the wrong kind"
+      },
+      {
+        "id": "unreadable-file",
+        "key": null,
+        "level": "error",
+        "rule": "an inventory that the tool could not read as UTF-8 text"
+      },
+      {
+        "id": "unparsable-file",
+        "key": null,
+        "level": "error",
+        "rule": "an inventory that the CSV or JSON reader refuses, or whose header or shape is not that of an inventory"
+      }
+    ]
+  },
+  "plan": {
+    "workloads": 15,
+    "records": 16,
+    "moving": 12,
+    "retained": 1,
+    "retired": 2,
+    "byPath": {
+      "retire": 2,
+      "retain": 1,
+      "rehost": 4,
+      "relocate": 1,
+      "repurchase": 1,
+      "replatform": 3,
+      "refactor": 1,
+      "none": 1,
+      "unknown": 1
+    },
+    "aliases": 2,
+    "groups": 11,
+    "circular": 2,
+    "maxWaveSize": 3,
+    "waves": [
+      {
+        "wave": 1,
+        "size": 3,
+        "groups": [
+          {
+            "group": 1,
+            "size": 1,
+            "circular": false,
+            "cycle": null,
+            "workloads": [
+              {
+                "id": "dns-core",
+                "name": "Internal DNS",
+                "type": "server",
+                "owner": "network-team",
+                "environment": "production",
+                "path": "move as is",
+                "strategy": "rehost",
+                "alias": true,
+                "criticality": "high",
+                "dependencies": [],
+                "file": "examples/messy/inventory.csv",
+                "line": 2
+              }
+            ]
+          },
+          {
+            "group": 2,
+            "size": 1,
+            "circular": false,
+            "cycle": null,
+            "workloads": [
+              {
+                "id": "billing",
+                "name": "Billing",
+                "type": "application",
+                "owner": "finance-team",
+                "environment": "production",
+                "path": "replatform",
+                "strategy": "replatform",
+                "alias": false,
+                "criticality": "high",
+                "dependencies": [
+                  "ledger-db2",
+                  "fax-gateway",
+                  "mainframe-batch"
+                ],
+                "file": "examples/messy/inventory.csv",
+                "line": 9
+              }
+            ]
+          },
+          {
+            "group": 3,
+            "size": 1,
+            "circular": false,
+            "cycle": null,
+            "workloads": [
+              {
+                "id": "dev-sandbox",
+                "name": "Developer sandbox",
+                "type": "server",
+                "owner": "platform-team",
+                "environment": "development",
+                "path": "",
+                "strategy": null,
+                "alias": false,
+                "criticality": "low",
+                "dependencies": [],
+                "file": "examples/messy/inventory.csv",
+                "line": 14
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "wave": 2,
+        "size": 1,
+        "groups": [
+          {
+            "group": 4,
+            "size": 1,
+            "circular": true,
+            "cycle": [
+              "test-runner",
+              "test-runner"
+            ],
+            "workloads": [
+              {
+                "id": "test-runner",
+                "name": "Test runner",
+                "type": "server",
+                "owner": "platform-team",
+                "environment": "development",
+                "path": "repurchase",
+                "strategy": "repurchase",
+                "alias": false,
+                "criticality": "low",
+                "dependencies": [
+                  "test-runner"
+                ],
+                "file": "examples/messy/inventory.csv",
+                "line": 15
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "wave": 3,
+        "size": 3,
+        "groups": [
+          {
+            "group": 5,
+            "size": 1,
+            "circular": false,
+            "cycle": null,
+            "workloads": [
+              {
+                "id": "auth-svc",
+                "name": "Sign-in service",
+                "type": "application",
+                "owner": "identity-team",
+                "environment": "production",
+                "path": "replatform",
+                "strategy": "replatform",
+                "alias": false,
+                "criticality": "high",
+                "dependencies": [
+                  "dns-core"
+                ],
+                "file": "examples/messy/inventory.csv",
+                "line": 3
+              }
+            ]
+          },
+          {
+            "group": 6,
+            "size": 1,
+            "circular": false,
+            "cycle": null,
+            "workloads": [
+              {
+                "id": "orders-db",
+                "name": "Orders database",
+                "type": "database",
+                "owner": "data-team",
+                "environment": "production",
+                "path": "replatform",
+                "strategy": "replatform",
+                "alias": false,
+                "criticality": "high",
+                "dependencies": [
+                  "dns-core"
+                ],
+                "file": "examples/messy/inventory.csv",
+                "line": 4
+              }
+            ]
+          },
+          {
+            "group": 7,
+            "size": 1,
+            "circular": false,
+            "cycle": null,
+            "workloads": [
+              {
+                "id": "rates-cache",
+                "name": "Rates cache",
+                "type": "server",
+                "owner": "",
+                "environment": "production",
+                "path": "Lift and Shift",
+                "strategy": "rehost",
+                "alias": true,
+                "criticality": "medium",
+                "dependencies": [
+                  "dns-core"
+                ],
+                "file": "examples/messy/inventory.csv",
+                "line": 7
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "wave": 4,
+        "size": 1,
+        "groups": [
+          {
+            "group": 8,
+            "size": 1,
+            "circular": false,
+            "cycle": null,
+            "workloads": [
+              {
+                "id": "ledger-db",
+                "name": "Ledger database",
+                "type": "database",
+                "owner": "finance-team",
+                "environment": "production",
+                "path": "relocate",
+                "strategy": "relocate",
+                "alias": false,
+                "criticality": "high",
+                "dependencies": [
+                  "dns-core"
+                ],
+                "file": "examples/messy/inventory.csv",
+                "line": 10
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "wave": 5,
+        "size": 3,
+        "groups": [
+          {
+            "group": 9,
+            "size": 2,
+            "circular": true,
+            "cycle": [
+              "orders-api",
+              "pricing-svc",
+              "orders-api"
+            ],
+            "workloads": [
+              {
+                "id": "orders-api",
+                "name": "Orders API, public",
+                "type": "application",
+                "owner": "commerce-team",
+                "environment": "production",
+                "path": "refactor",
+                "strategy": "refactor",
+                "alias": false,
+                "criticality": "high",
+                "dependencies": [
+                  "orders-db",
+                  "pricing-svc",
+                  "auth-svc"
+                ],
+                "file": "examples/messy/inventory.csv",
+                "line": 5
+              },
+              {
+                "id": "pricing-svc",
+                "name": "Pricing service",
+                "type": "application",
+                "owner": "commerce-team",
+                "environment": "production",
+                "path": "rehost",
+                "strategy": "rehost",
+                "alias": false,
+                "criticality": "medium",
+                "dependencies": [
+                  "orders-api",
+                  "rates-cache"
+                ],
+                "file": "examples/messy/inventory.csv",
+                "line": 6
+              }
+            ]
+          },
+          {
+            "group": 10,
+            "size": 1,
+            "circular": false,
+            "cycle": null,
+            "workloads": [
+              {
+                "id": "report-portal",
+                "name": "Reports portal",
+                "type": "application",
+                "owner": "data-team",
+                "environment": "production",
+                "path": "rehoist",
+                "strategy": null,
+                "alias": false,
+                "criticality": "low",
+                "dependencies": [
+                  "orders-db"
+                ],
+                "file": "examples/messy/inventory.csv",
+                "line": 13
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "wave": 6,
+        "size": 1,
+        "groups": [
+          {
+            "group": 11,
+            "size": 1,
+            "circular": false,
+            "cycle": null,
+            "workloads": [
+              {
+                "id": "web-shop",
+                "name": "Web shop",
+                "type": "application",
+                "owner": "web-team",
+                "environment": "production",
+                "path": "rehost",
+                "strategy": "rehost",
+                "alias": false,
+                "criticality": "high",
+                "dependencies": [
+                  "orders-api",
+                  "auth-svc"
+                ],
+                "file": "examples/messy/inventory.csv",
+                "line": 8
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "notMoving": [
+      {
+        "id": "fax-gateway",
+        "name": "Fax gateway",
+        "type": "server",
+        "owner": "ops-team",
+        "environment": "production",
+        "path": "retire",
+        "strategy": "retire",
+        "alias": false,
+        "criticality": "low",
+        "dependencies": [],
+        "file": "examples/messy/inventory.csv",
+        "line": 11,
+        "dependents": [
+          "billing",
+          "old-intranet"
+        ]
+      },
+      {
+        "id": "mainframe-batch",
+        "name": "Mainframe batch jobs",
+        "type": "server",
+        "owner": "finance-team",
+        "environment": "production",
+        "path": "retain",
+        "strategy": "retain",
+        "alias": false,
+        "criticality": "high",
+        "dependencies": [],
+        "file": "examples/messy/inventory.csv",
+        "line": 12,
+        "dependents": [
+          "billing"
+        ]
+      },
+      {
+        "id": "old-intranet",
+        "name": "Old intranet",
+        "type": "application",
+        "owner": "web-team",
+        "environment": "production",
+        "path": "retire",
+        "strategy": "retire",
+        "alias": false,
+        "criticality": "low",
+        "dependencies": [
+          "fax-gateway"
+        ],
+        "file": "examples/messy/inventory.csv",
+        "line": 17,
+        "dependents": []
+      }
+    ]
+  },
+  "findings": [
+    {
+      "rule": "unknown-dependency",
+      "level": "error",
+      "file": "examples/messy/inventory.csv",
+      "line": 9,
+      "column": 69,
+      "at": "examples/messy/inventory.csv:9",
+      "found": "workload \"billing\" depends on \"ledger-db2\", which is not an id of the inventory; did you mean \"ledger-db\"?",
+      "fix": "correct the id, or add the workload it names to the inventory with its migration path",
+      "basis": [
+        {
+          "text": "the migration sequence decides which workloads move first so that dependent components move together, and a large portfolio is organized into migration waves",
+          "source": "Plan your migration (Microsoft Cloud Adoption Framework, Migrate)",
+          "url": "https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/migrate/plan-migration"
+        },
+        {
+          "text": "workloads that communicate or share resources go into the same wave, because a broken dependency disrupts the service; when it is not clear how critical a dependency is, the components are grouped together",
+          "source": "Migration wave planning (Microsoft Cloud Adoption Framework, Migrate)",
+          "url": "https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/migrate/migration-wave-planning"
+        }
+      ],
+      "own": "one finding per workload and unknown id; the dependency is left out of the plan, so the order it would give is lost; ids are compared exactly, with their case; a near id is suggested for an unknown id of four characters or more when the inventory holds at most 5,000 ids, for the first 100 of them"
+    },
+    {
+      "rule": "retired-dependency",
+      "level": "error",
+      "file": "examples/messy/inventory.csv",
+      "line": 11,
+      "column": 52,
+      "at": "examples/messy/inventory.csv:11",
+      "found": "workload \"fax-gateway\" is marked retire, but \"billing\" still depends on it",
+      "fix": "move the dependents off the workload first, or change its path to one that keeps it running",
+      "basis": [
+        {
+          "text": "retire is the strategy for an application that is decommissioned or archived, so the servers of its stack can be shut down",
+          "source": "About the migration strategies (AWS Prescriptive Guidance, Guide for AWS large migrations)",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html"
+        },
+        {
+          "text": "the source environment is kept as a fallback after the cutover, so that DNS records and configurations can be reverted when a problem cannot be solved in time",
+          "source": "Execute migration to cloud (Microsoft Cloud Adoption Framework, Migrate)",
+          "url": "https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/migrate/execute-migration"
+        }
+      ],
+      "own": "one finding per retired workload, listing every workload that depends on it and is not retired itself, the retained ones included"
+    },
+    {
+      "rule": "unknown-path",
+      "level": "error",
+      "file": "examples/messy/inventory.csv",
+      "line": 13,
+      "column": 63,
+      "at": "examples/messy/inventory.csv:13",
+      "found": "workload \"report-portal\" has the migration path \"rehoist\", which is not one of the 7 Rs or a known alias; it is planned as a workload that moves",
+      "fix": "write one of the 7 Rs, or add the word your team uses to aliases in the configuration",
+      "basis": [
+        {
+          "text": "the guide names seven migration strategies, the 7 Rs: retire, retain, rehost, relocate, repurchase, replatform, and refactor or re-architect",
+          "source": "About the migration strategies (AWS Prescriptive Guidance, Guide for AWS large migrations)",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html"
+        },
+        {
+          "text": "rehost, also called lift and shift, moves an application to the cloud without changing it",
+          "source": "About the migration strategies (AWS Prescriptive Guidance, Guide for AWS large migrations)",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html"
+        },
+        {
+          "text": "relocate moves many servers at once to a cloud version of the same platform, or moves resources to another network, Region or account, without changing the architecture",
+          "source": "About the migration strategies (AWS Prescriptive Guidance, Guide for AWS large migrations)",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html"
+        },
+        {
+          "text": "repurchase, also called drop and shop, replaces an application with another version or product, often one sold as a service",
+          "source": "About the migration strategies (AWS Prescriptive Guidance, Guide for AWS large migrations)",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html"
+        },
+        {
+          "text": "replatform, also called lift, tinker and shift or lift and reshape, moves an application and makes some changes on the way, such as a managed database",
+          "source": "About the migration strategies (AWS Prescriptive Guidance, Guide for AWS large migrations)",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html"
+        },
+        {
+          "text": "refactor or re-architect changes the architecture of an application to use cloud-native features; it is the most complex strategy, and the guide advises against it for large migrations",
+          "source": "About the migration strategies (AWS Prescriptive Guidance, Guide for AWS large migrations)",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html"
+        }
+      ],
+      "own": "a path is compared with the letters A to Z lowered and runs of spaces, hyphens, underscores and commas made one space; the names of the AWS guide and the aliases of the configuration (lift and shift, lift and reshape, drop and shop, re-architect and others) are known; a workload with an unknown path is planned as one that moves"
+    },
+    {
+      "rule": "missing-path",
+      "level": "error",
+      "file": "examples/messy/inventory.csv",
+      "line": 14,
+      "column": 64,
+      "at": "examples/messy/inventory.csv:14",
+      "found": "workload \"dev-sandbox\" has no migration path; it is planned as a workload that moves",
+      "fix": "choose one of the 7 Rs for the workload: retire, retain, rehost, relocate, repurchase, replatform or refactor",
+      "basis": [
+        {
+          "text": "the guide names seven migration strategies, the 7 Rs: retire, retain, rehost, relocate, repurchase, replatform, and refactor or re-architect",
+          "source": "About the migration strategies (AWS Prescriptive Guidance, Guide for AWS large migrations)",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html"
+        }
+      ],
+      "own": "a workload with no path is planned as one that moves, so that the order of its dependencies still holds, and is shown with the path none"
+    },
+    {
+      "rule": "duplicate-id",
+      "level": "error",
+      "file": "examples/messy/inventory.csv",
+      "line": 16,
+      "column": 1,
+      "at": "examples/messy/inventory.csv:16",
+      "found": "the id \"auth-svc\" is used again; the first record with it is at examples/messy/inventory.csv:3, and this record is left out of the plan",
+      "fix": "give each workload its own id, or merge the two records into one",
+      "basis": [
+        {
+          "text": "each dependency group is written down with a unique identifier and name, its components, its critical dependencies and its constraints",
+          "source": "Migration wave planning (Microsoft Cloud Adoption Framework, Migrate)",
+          "url": "https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/migrate/migration-wave-planning"
+        }
+      ],
+      "own": "the first record with an id is the one planned, in the order of the files on the command line and of the records in each file; every later record with the same id is reported at its id and left out of the plan"
+    },
+    {
+      "rule": "invalid-record",
+      "level": "error",
+      "file": "examples/messy/inventory.csv",
+      "line": 18,
+      "column": 1,
+      "at": "examples/messy/inventory.csv:18",
+      "found": "this row has 4 fields and the header has 9; the row is not read",
+      "fix": "correct the record at the line named",
+      "basis": [
+        {
+          "text": "every line of a CSV file should hold the same number of fields",
+          "source": "RFC 4180, Common Format and MIME Type for Comma-Separated Values (CSV) Files",
+          "url": "https://www.rfc-editor.org/rfc/rfc4180"
+        },
+        {
+          "text": "each dependency group is written down with a unique identifier and name, its components, its critical dependencies and its constraints",
+          "source": "Migration wave planning (Microsoft Cloud Adoption Framework, Migrate)",
+          "url": "https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/migrate/migration-wave-planning"
+        }
+      ],
+      "own": "a record with no id, a CSV row with a different number of fields than the header, a JSON record that is not an object or names a field twice, is not part of the plan; a value of the wrong kind is taken as empty; this rule cannot be set lower or off"
+    },
+    {
+      "rule": "circular-dependency",
+      "level": "warning",
+      "file": "examples/messy/inventory.csv",
+      "line": 5,
+      "column": 84,
+      "at": "examples/messy/inventory.csv:5",
+      "found": "workloads \"orders-api\" and \"pricing-svc\" depend on each other (orders-api -> pricing-svc -> orders-api); they are move group 9 and move together in wave 5",
+      "fix": "check each dependency of the circle; remove the one that is not real, or plan the group as one move with one cutover",
+      "basis": [
+        {
+          "text": "workloads that communicate or share resources go into the same wave, because a broken dependency disrupts the service; when it is not clear how critical a dependency is, the components are grouped together",
+          "source": "Migration wave planning (Microsoft Cloud Adoption Framework, Migrate)",
+          "url": "https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/migrate/migration-wave-planning"
+        },
+        {
+          "text": "the migration sequence decides which workloads move first so that dependent components move together, and a large portfolio is organized into migration waves",
+          "source": "Plan your migration (Microsoft Cloud Adoption Framework, Migrate)",
+          "url": "https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/migrate/plan-migration"
+        }
+      ],
+      "own": "the workloads of a strongly connected component of the graph of moving workloads, or one that depends on itself, become one move group that moves in one wave; one finding per group, at its first workload, with a shortest cycle through it; a warning, because the plan can still be made, but the group is larger than its parts and the circle is often a mistake in the inventory"
+    },
+    {
+      "rule": "missing-owner",
+      "level": "warning",
+      "file": "examples/messy/inventory.csv",
+      "line": 7,
+      "column": 32,
+      "at": "examples/messy/inventory.csv:7",
+      "found": "workload \"rates-cache\" (Rates cache) has no owner",
+      "fix": "name the person or team who decides on the move and signs off the cutover",
+      "basis": [
+        {
+          "text": "the plan records for each workload its name, owner, criticality, migration method and downtime window, and the details of a workload include its owner and its dependencies",
+          "source": "Plan your migration (Microsoft Cloud Adoption Framework, Migrate)",
+          "url": "https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/migrate/plan-migration"
+        }
+      ],
+      "own": "an owner that is empty or not given at all; any text counts as an owner, the tool cannot tell whether the person or team is real"
+    },
+    {
+      "rule": "retained-dependency",
+      "level": "warning",
+      "file": "examples/messy/inventory.csv",
+      "line": 12,
+      "column": 69,
+      "at": "examples/messy/inventory.csv:12",
+      "found": "workload \"mainframe-batch\" is marked retain and stays in the source environment, but \"billing\" (wave 1) moves and depends on it: a link between the two environments to plan",
+      "fix": "plan the connection between the cloud and the source environment (network, latency, security), or move the retained workload too",
+      "basis": [
+        {
+          "text": "retain keeps an application in the source environment, for example because it is not ready to move or because other applications must move first",
+          "source": "About the migration strategies (AWS Prescriptive Guidance, Guide for AWS large migrations)",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html"
+        },
+        {
+          "text": "components that must stay in the source environment need their connections and data flows written down, and the time a workload runs across both environments should be kept short",
+          "source": "Plan your migration (Microsoft Cloud Adoption Framework, Migrate)",
+          "url": "https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/migrate/plan-migration"
+        }
+      ],
+      "own": "one finding per retained workload, listing the moving workloads that depend on it with their waves; a warning, because a link between the two environments can be planned: it names a connection to design, not a mistake"
+    },
+    {
+      "rule": "circular-dependency",
+      "level": "warning",
+      "file": "examples/messy/inventory.csv",
+      "line": 15,
+      "column": 73,
+      "at": "examples/messy/inventory.csv:15",
+      "found": "workload \"test-runner\" depends on itself; it is move group 4 and moves in wave 2",
+      "fix": "check each dependency of the circle; remove the one that is not real, or plan the group as one move with one cutover",
+      "basis": [
+        {
+          "text": "workloads that communicate or share resources go into the same wave, because a broken dependency disrupts the service; when it is not clear how critical a dependency is, the components are grouped together",
+          "source": "Migration wave planning (Microsoft Cloud Adoption Framework, Migrate)",
+          "url": "https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/migrate/migration-wave-planning"
+        },
+        {
+          "text": "the migration sequence decides which workloads move first so that dependent components move together, and a large portfolio is organized into migration waves",
+          "source": "Plan your migration (Microsoft Cloud Adoption Framework, Migrate)",
+          "url": "https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/migrate/plan-migration"
+        }
+      ],
+      "own": "the workloads of a strongly connected component of the graph of moving workloads, or one that depends on itself, become one move group that moves in one wave; one finding per group, at its first workload, with a shortest cycle through it; a warning, because the plan can still be made, but the group is larger than its parts and the circle is often a mistake in the inventory"
+    }
+  ],
+  "totals": {
+    "findings": 10,
+    "byLevel": {
+      "error": 6,
+      "warning": 4,
+      "info": 0
+    },
+    "hidden": 0,
+    "notListed": 0
+  },
+  "result": {
+    "pass": false,
+    "failOn": "warning",
+    "failing": 10,
+    "byLevel": {
+      "error": 6,
+      "warning": 4,
+      "info": 0
+    },
+    "text": "FAIL - 10 findings at or above warning (6 error, 4 warning)"
+  },
+  "notes": [
+    "examples/messy/inventory.csv: 1 column the tool does not read was left out: \"notes\"",
+    "2 migration paths were written as another name of a strategy and read as that strategy"
+  ],
+  "notice": "This plan is built from the inventory as it is written. It does not discover dependencies, read network traffic, size machines or check a target service, so a dependency the inventory does not list is not seen and the waves are only as right as the dependencies in the file (docs/limits.md)."
+}

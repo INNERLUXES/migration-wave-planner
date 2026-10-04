@@ -1,0 +1,13 @@
+{
+  "estate": "Larkspur clinic",
+  "workloads": [
+    { "id": "dir-svc", "name": "Directory service", "type": "server", "owner": "infra-team", "environment": "production", "migrationPath": "rehost", "criticality": "high", "dependencies": [] },
+    { "id": "files-share", "name": "File share", "type": "server", "owner": "infra-team", "environment": "production", "migrationPath": "replatform", "criticality": "medium", "dependencies": ["dir-svc"] },
+    { "id": "records-db", "name": "Patient records database", "type": "database", "owner": "records-team", "environment": "production", "migrationPath": "replatform", "criticality": "high", "dependencies": ["dir-svc"] },
+    { "id": "records-app", "name": "Patient records", "type": "application", "owner": "records-team", "environment": "production", "migrationPath": "rehost", "criticality": "high", "dependencies": ["records-db", "dir-svc"] },
+    { "id": "booking", "name": "Appointment booking", "type": "application", "owner": "front-desk-team", "environment": "production", "migrationPath": "repurchase", "criticality": "medium", "dependencies": ["records-app"] },
+    { "id": "lab-gateway", "name": "Lab results gateway", "type": "server", "owner": "lab-team", "environment": "production", "migrationPath": "relocate", "criticality": "high", "dependencies": ["records-app"] },
+    { "id": "imaging-archive", "name": "Imaging archive", "type": "server", "owner": "lab-team", "environment": "production", "migrationPath": "retain", "criticality": "medium", "dependencies": ["dir-svc"] },
+    { "id": "old-fax", "name": "Fax server", "type": "server", "owner": "infra-team", "environment": "production", "migrationPath": "retire", "criticality": "low", "dependencies": [] }
+  ]
+}

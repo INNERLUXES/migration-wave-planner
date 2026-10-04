@@ -1,0 +1,6 @@
+{
+  "name": "Quillmoor estate",
+  "aliases": { "move as is": "rehost" },
+  "maxWaveSize": 3,
+  "failOn": "warning"
+}

@@ -1,0 +1,47 @@
+migration-wave-planner: examples/clean/inventory.json
+input: examples/clean/inventory.json (1 file: 1 JSON inventory; 8 records)
+config: built-in defaults: 6 aliases; largest wave no limit; minimum severity info; fail on error
+rules: circular-dependency (warning); unknown-dependency (error); duplicate-id (error); missing-owner (warning); missing-path (error); unknown-path (error); retired-dependency (error); retained-dependency (warning); move-group-too-big (warning); invalid-record (error); unreadable-file (error); unparsable-file (error)
+plan: 8 workloads: 6 move in 4 waves (6 move groups, 0 circular), 1 retained, 1 retired
+paths: retire 1, retain 1, rehost 2, relocate 1, repurchase 1, replatform 2
+findings: 0
+
+Waves (4)
+
+  Wave 1: 1 workload in 1 move group
+
+    group  id       name               type    environment  path    owner       criticality  depends on
+    1      dir-svc  Directory service  server  production   rehost  infra-team  high         -
+
+  Wave 2: 2 workloads in 2 move groups
+
+    group  id           name                      type      environment  path        owner         criticality  depends on
+    2      files-share  File share                server    production   replatform  infra-team    medium       dir-svc
+    3      records-db   Patient records database  database  production   replatform  records-team  high         dir-svc
+
+  Wave 3: 1 workload in 1 move group
+
+    group  id           name             type         environment  path    owner         criticality  depends on
+    4      records-app  Patient records  application  production   rehost  records-team  high         records-db and dir-svc
+
+  Wave 4: 2 workloads in 2 move groups
+
+    group  id           name                 type         environment  path        owner            criticality  depends on
+    5      booking      Appointment booking  application  production   repurchase  front-desk-team  medium       records-app
+    6      lab-gateway  Lab results gateway  server       production   relocate    lab-team         high         records-app
+
+Not moving (2)
+
+  id               name             type    environment  path    owner       needed by
+  imaging-archive  Imaging archive  server  production   retain  lab-team    -
+  old-fax          Fax server       server  production   retire  infra-team  -
+
+Findings (0)
+
+  none
+
+note: examples/clean/inventory.json: 1 key the tool does not read was left out: "estate"
+
+This plan is built from the inventory as it is written. It does not discover dependencies, read network traffic, size machines or check a target service, so a dependency the inventory does not list is not seen and the waves are only as right as the dependencies in the file (docs/limits.md).
+
+RESULT: PASS - no finding at or above error

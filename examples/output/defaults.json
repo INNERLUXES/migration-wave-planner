@@ -1,0 +1,25 @@
+{
+  "name": "built-in defaults",
+  "rules": {
+    "circularDependency": "warning",
+    "unknownDependency": "error",
+    "duplicateId": "error",
+    "missingOwner": "warning",
+    "missingPath": "error",
+    "unknownPath": "error",
+    "retiredDependency": "error",
+    "retainedDependency": "warning",
+    "moveGroupTooBig": "warning"
+  },
+  "aliases": {
+    "lift and shift": "rehost",
+    "lift tinker and shift": "replatform",
+    "lift and reshape": "replatform",
+    "drop and shop": "repurchase",
+    "re architect": "refactor",
+    "rearchitect": "refactor"
+  },
+  "maxWaveSize": null,
+  "minSeverity": "info",
+  "failOn": "error"
+}

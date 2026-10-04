@@ -1,0 +1,146 @@
+migration-wave-planner: examples/messy/inventory.csv
+input: examples/messy/inventory.csv (1 file: 1 CSV inventory; 17 records)
+config: examples/config.json (Quillmoor estate): 7 aliases; largest wave 3; minimum severity info; fail on warning
+rules: circular-dependency (warning); unknown-dependency (error); duplicate-id (error); missing-owner (warning); missing-path (error); unknown-path (error); retired-dependency (error); retained-dependency (warning); move-group-too-big (warning); invalid-record (error); unreadable-file (error); unparsable-file (error)
+plan: 15 workloads: 12 move in 6 waves (11 move groups, 2 circular), 1 retained, 2 retired
+paths: retire 2, retain 1, rehost 4, relocate 1, repurchase 1, replatform 3, refactor 1, none 1, unknown 1
+findings: 10 (6 error, 4 warning)
+
+Waves (6)
+
+  Wave 1: 3 workloads in 3 move groups
+
+    group  id           name               type         environment  path                 owner          criticality  depends on
+    1      dns-core     Internal DNS       server       production   rehost (move as is)  network-team   high         -
+    2      billing      Billing            application  production   replatform           finance-team   high         ledger-db2, fax-gateway and mainframe-batch
+    3      dev-sandbox  Developer sandbox  server       development  none                 platform-team  low          -
+
+  Wave 2: 1 workload in 1 move group
+
+    group  id           name         type    environment  path        owner          criticality  depends on
+    4      test-runner  Test runner  server  development  repurchase  platform-team  low          test-runner
+
+    move group 4 moves together, a circle: test-runner -> test-runner
+
+  Wave 3: 3 workloads in 3 move groups
+
+    group  id           name             type         environment  path                     owner          criticality  depends on
+    5      auth-svc     Sign-in service  application  production   replatform               identity-team  high         dns-core
+    6      orders-db    Orders database  database     production   replatform               data-team      high         dns-core
+    7      rates-cache  Rates cache      server       production   rehost (Lift and Shift)  -              medium       dns-core
+
+  Wave 4: 1 workload in 1 move group
+
+    group  id         name             type      environment  path      owner         criticality  depends on
+    8      ledger-db  Ledger database  database  production   relocate  finance-team  high         dns-core
+
+  Wave 5: 3 workloads in 2 move groups
+
+    group  id             name                type         environment  path                 owner          criticality  depends on
+    9      orders-api     Orders API, public  application  production   refactor             commerce-team  high         orders-db, pricing-svc and auth-svc
+    9      pricing-svc    Pricing service     application  production   rehost               commerce-team  medium       orders-api and rates-cache
+    10     report-portal  Reports portal      application  production   "rehoist" (unknown)  data-team      low          orders-db
+
+    move group 9 moves together, a circle: orders-api -> pricing-svc -> orders-api
+
+  Wave 6: 1 workload in 1 move group
+
+    group  id        name      type         environment  path    owner     criticality  depends on
+    11     web-shop  Web shop  application  production   rehost  web-team  high         orders-api and auth-svc
+
+Not moving (3)
+
+  id               name                  type         environment  path    owner         needed by
+  fax-gateway      Fax gateway           server       production   retire  ops-team      billing and old-intranet
+  mainframe-batch  Mainframe batch jobs  server       production   retain  finance-team  billing
+  old-intranet     Old intranet          application  production   retire  web-team      -
+
+Findings (10)
+
+  ERROR    unknown-dependency   examples/messy/inventory.csv:9
+           workload "billing" depends on "ledger-db2", which is not an id of the inventory; did you mean "ledger-db"?
+           fix: correct the id, or add the workload it names to the inventory with its migration path
+           rule: an id in the dependencies of a workload that no record of the inventory has
+           basis: the migration sequence decides which workloads move first so that dependent components move together, and a large portfolio is organized into migration waves (Plan your migration (Microsoft Cloud Adoption Framework, Migrate), https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/migrate/plan-migration)
+           basis: workloads that communicate or share resources go into the same wave, because a broken dependency disrupts the service; when it is not clear how critical a dependency is, the components are grouped together (Migration wave planning (Microsoft Cloud Adoption Framework, Migrate), https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/migrate/migration-wave-planning)
+           the tool's own choice: one finding per workload and unknown id; the dependency is left out of the plan, so the order it would give is lost; ids are compared exactly, with their case; a near id is suggested for an unknown id of four characters or more when the inventory holds at most 5,000 ids, for the first 100 of them
+
+  ERROR    retired-dependency   examples/messy/inventory.csv:11
+           workload "fax-gateway" is marked retire, but "billing" still depends on it
+           fix: move the dependents off the workload first, or change its path to one that keeps it running
+           rule: a workload with the path retire that a workload with another path depends on
+           basis: retire is the strategy for an application that is decommissioned or archived, so the servers of its stack can be shut down (About the migration strategies (AWS Prescriptive Guidance, Guide for AWS large migrations), https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html)
+           basis: the source environment is kept as a fallback after the cutover, so that DNS records and configurations can be reverted when a problem cannot be solved in time (Execute migration to cloud (Microsoft Cloud Adoption Framework, Migrate), https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/migrate/execute-migration)
+           the tool's own choice: one finding per retired workload, listing every workload that depends on it and is not retired itself, the retained ones included
+
+  ERROR    unknown-path         examples/messy/inventory.csv:13
+           workload "report-portal" has the migration path "rehoist", which is not one of the 7 Rs or a known alias; it is planned as a workload that moves
+           fix: write one of the 7 Rs, or add the word your team uses to aliases in the configuration
+           rule: a migration path that is none of retire, retain, rehost, relocate, repurchase, replatform, refactor and the 7 aliases of the configuration
+           basis: the guide names seven migration strategies, the 7 Rs: retire, retain, rehost, relocate, repurchase, replatform, and refactor or re-architect (About the migration strategies (AWS Prescriptive Guidance, Guide for AWS large migrations), https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html)
+           basis: rehost, also called lift and shift, moves an application to the cloud without changing it (About the migration strategies (AWS Prescriptive Guidance, Guide for AWS large migrations), https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html)
+           basis: relocate moves many servers at once to a cloud version of the same platform, or moves resources to another network, Region or account, without changing the architecture (About the migration strategies (AWS Prescriptive Guidance, Guide for AWS large migrations), https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html)
+           basis: repurchase, also called drop and shop, replaces an application with another version or product, often one sold as a service (About the migration strategies (AWS Prescriptive Guidance, Guide for AWS large migrations), https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html)
+           basis: replatform, also called lift, tinker and shift or lift and reshape, moves an application and makes some changes on the way, such as a managed database (About the migration strategies (AWS Prescriptive Guidance, Guide for AWS large migrations), https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html)
+           basis: refactor or re-architect changes the architecture of an application to use cloud-native features; it is the most complex strategy, and the guide advises against it for large migrations (About the migration strategies (AWS Prescriptive Guidance, Guide for AWS large migrations), https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html)
+           the tool's own choice: a path is compared with the letters A to Z lowered and runs of spaces, hyphens, underscores and commas made one space; the names of the AWS guide and the aliases of the configuration (lift and shift, lift and reshape, drop and shop, re-architect and others) are known; a workload with an unknown path is planned as one that moves
+
+  ERROR    missing-path         examples/messy/inventory.csv:14
+           workload "dev-sandbox" has no migration path; it is planned as a workload that moves
+           fix: choose one of the 7 Rs for the workload: retire, retain, rehost, relocate, repurchase, replatform or refactor
+           rule: a workload with an empty migration path, or an inventory with no path column
+           basis: the guide names seven migration strategies, the 7 Rs: retire, retain, rehost, relocate, repurchase, replatform, and refactor or re-architect (About the migration strategies (AWS Prescriptive Guidance, Guide for AWS large migrations), https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html)
+           the tool's own choice: a workload with no path is planned as one that moves, so that the order of its dependencies still holds, and is shown with the path none
+
+  ERROR    duplicate-id         examples/messy/inventory.csv:16
+           the id "auth-svc" is used again; the first record with it is at examples/messy/inventory.csv:3, and this record is left out of the plan
+           fix: give each workload its own id, or merge the two records into one
+           rule: a record whose id an earlier record already has
+           basis: each dependency group is written down with a unique identifier and name, its components, its critical dependencies and its constraints (Migration wave planning (Microsoft Cloud Adoption Framework, Migrate), https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/migrate/migration-wave-planning)
+           the tool's own choice: the first record with an id is the one planned, in the order of the files on the command line and of the records in each file; every later record with the same id is reported at its id and left out of the plan
+
+  ERROR    invalid-record       examples/messy/inventory.csv:18
+           this row has 4 fields and the header has 9; the row is not read
+           fix: correct the record at the line named
+           rule: a record of the inventory with no id, the wrong number of fields or a value of the wrong kind
+           basis: every line of a CSV file should hold the same number of fields (RFC 4180, Common Format and MIME Type for Comma-Separated Values (CSV) Files, https://www.rfc-editor.org/rfc/rfc4180)
+           basis: each dependency group is written down with a unique identifier and name, its components, its critical dependencies and its constraints (Migration wave planning (Microsoft Cloud Adoption Framework, Migrate), https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/migrate/migration-wave-planning)
+           the tool's own choice: a record with no id, a CSV row with a different number of fields than the header, a JSON record that is not an object or names a field twice, is not part of the plan; a value of the wrong kind is taken as empty; this rule cannot be set lower or off
+
+  WARNING  circular-dependency  examples/messy/inventory.csv:5
+           workloads "orders-api" and "pricing-svc" depend on each other (orders-api -> pricing-svc -> orders-api); they are move group 9 and move together in wave 5
+           fix: check each dependency of the circle; remove the one that is not real, or plan the group as one move with one cutover
+           rule: moving workloads whose dependencies lead back to themselves
+           basis: workloads that communicate or share resources go into the same wave, because a broken dependency disrupts the service; when it is not clear how critical a dependency is, the components are grouped together (Migration wave planning (Microsoft Cloud Adoption Framework, Migrate), https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/migrate/migration-wave-planning)
+           basis: the migration sequence decides which workloads move first so that dependent components move together, and a large portfolio is organized into migration waves (Plan your migration (Microsoft Cloud Adoption Framework, Migrate), https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/migrate/plan-migration)
+           the tool's own choice: the workloads of a strongly connected component of the graph of moving workloads, or one that depends on itself, become one move group that moves in one wave; one finding per group, at its first workload, with a shortest cycle through it; a warning, because the plan can still be made, but the group is larger than its parts and the circle is often a mistake in the inventory
+
+  WARNING  missing-owner        examples/messy/inventory.csv:7
+           workload "rates-cache" (Rates cache) has no owner
+           fix: name the person or team who decides on the move and signs off the cutover
+           rule: a workload with an empty owner, or an inventory with no owner column
+           basis: the plan records for each workload its name, owner, criticality, migration method and downtime window, and the details of a workload include its owner and its dependencies (Plan your migration (Microsoft Cloud Adoption Framework, Migrate), https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/migrate/plan-migration)
+           the tool's own choice: an owner that is empty or not given at all; any text counts as an owner, the tool cannot tell whether the person or team is real
+
+  WARNING  retained-dependency  examples/messy/inventory.csv:12
+           workload "mainframe-batch" is marked retain and stays in the source environment, but "billing" (wave 1) moves and depends on it: a link between the two environments to plan
+           fix: plan the connection between the cloud and the source environment (network, latency, security), or move the retained workload too
+           rule: a workload with the path retain that a workload that moves depends on
+           basis: retain keeps an application in the source environment, for example because it is not ready to move or because other applications must move first (About the migration strategies (AWS Prescriptive Guidance, Guide for AWS large migrations), https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html)
+           basis: components that must stay in the source environment need their connections and data flows written down, and the time a workload runs across both environments should be kept short (Plan your migration (Microsoft Cloud Adoption Framework, Migrate), https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/migrate/plan-migration)
+           the tool's own choice: one finding per retained workload, listing the moving workloads that depend on it with their waves; a warning, because a link between the two environments can be planned: it names a connection to design, not a mistake
+
+  WARNING  circular-dependency  examples/messy/inventory.csv:15
+           workload "test-runner" depends on itself; it is move group 4 and moves in wave 2
+           fix: check each dependency of the circle; remove the one that is not real, or plan the group as one move with one cutover
+           rule: moving workloads whose dependencies lead back to themselves
+           basis: workloads that communicate or share resources go into the same wave, because a broken dependency disrupts the service; when it is not clear how critical a dependency is, the components are grouped together (Migration wave planning (Microsoft Cloud Adoption Framework, Migrate), https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/migrate/migration-wave-planning)
+           basis: the migration sequence decides which workloads move first so that dependent components move together, and a large portfolio is organized into migration waves (Plan your migration (Microsoft Cloud Adoption Framework, Migrate), https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/migrate/plan-migration)
+           the tool's own choice: the workloads of a strongly connected component of the graph of moving workloads, or one that depends on itself, become one move group that moves in one wave; one finding per group, at its first workload, with a shortest cycle through it; a warning, because the plan can still be made, but the group is larger than its parts and the circle is often a mistake in the inventory
+
+note: examples/messy/inventory.csv: 1 column the tool does not read was left out: "notes"
+note: 2 migration paths were written as another name of a strategy and read as that strategy
+
+This plan is built from the inventory as it is written. It does not discover dependencies, read network traffic, size machines or check a target service, so a dependency the inventory does not list is not seen and the waves are only as right as the dependencies in the file (docs/limits.md).
+
+RESULT: FAIL - 10 findings at or above warning (6 error, 4 warning)
