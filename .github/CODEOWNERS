@@ -1,0 +1,17 @@
+# Every change is reviewed by a maintainer.
+* @innerluxesdev
+
+# The readers, the plan, the rules, the points of the public pages, the checks and the output decide every result and
+# what is read from the disk; changes need extra care.
+/src/data.js @innerluxesdev
+/research/ @innerluxesdev
+/src/files.js @innerluxesdev
+/src/json.js @innerluxesdev
+/src/csv.js @innerluxesdev
+/src/inventory.js @innerluxesdev
+/src/graph.js @innerluxesdev
+/src/plan.js @innerluxesdev
+/src/config.js @innerluxesdev
+/src/rules.js @innerluxesdev
+/src/check.js @innerluxesdev
+/src/report.js @innerluxesdev
