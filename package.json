@@ -1,0 +1,51 @@
+{
+  "name": "migration-wave-planner",
+  "version": "1.0.0",
+  "description": "Cloud migration wave planning from an inventory: reads a CSV or JSON list of servers, applications and databases with their owner, environment, migration path (one of the 7 Rs) and dependencies, groups workloads that depend on each other into move groups, orders them into waves with dependencies first, keeps retained and retired workloads out of the waves, and reports circular dependencies, unknown ids, duplicate ids, missing owners, missing or unknown migration paths, retired workloads still in use and retained workloads that moving ones need. Text, JSON, CSV and GitHub annotation output, exit codes for a pipeline, no dependencies.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "bin": {
+    "migration-wave-planner": "bin/migration-wave-planner.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "docs",
+    "examples",
+    "research",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.js\"",
+    "test:coverage": "node --test --experimental-test-coverage \"test/*.test.js\"",
+    "check": "node tools/check.mjs",
+    "example": "node tools/example.mjs"
+  },
+  "keywords": [
+    "cloud-migration",
+    "migration-planning",
+    "migration-waves",
+    "7rs",
+    "aws",
+    "azure",
+    "google-cloud",
+    "dependency-graph",
+    "inventory",
+    "csv",
+    "cli"
+  ],
+  "author": "INNERLUXES <info@innerluxes.dev>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/INNERLUXES/migration-wave-planner.git"
+  },
+  "homepage": "https://innerluxes.dev/cloud/migration"
+}
